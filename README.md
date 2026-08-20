@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# StudyForge AI
 
-## Getting Started
+An AI-native study planner: give it a messy topic, get back a clear,
+actionable study plan you can save and revisit.
 
-First, run the development server:
+This repository is the **Setup Sprint — Builder Infrastructure** submission:
+free-stack infrastructure (GitHub, Vercel, Supabase, Next.js, Tailwind, a
+coding agent) wired together and deployed, with a homepage, navigation,
+footer, and a `/docs` placeholder.
+
+## Tech stack
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Framework | Next.js (App Router) | Free, fast, first-class Vercel support |
+| Styling | Tailwind CSS | Fast to build with, no design system to maintain |
+| Hosting | Vercel (free tier) | Zero-config deploys straight from GitHub |
+| Database | Supabase (free tier) | Managed Postgres + free auth for future weeks |
+| Version control | GitHub | Required for commit/deploy evidence |
+| Coding agent | Claude Code | Used to scaffold and iterate on this app |
+
+## Getting started locally
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in your real Supabase values
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.example` to `.env.local` (git-ignored) and fill in the values
+from your Supabase project (**Project Settings → API**):
 
-## Learn More
+| Variable | Where it's used | Required this week? |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | `src/lib/supabaseClient.js` | For evidence only; app runs without it |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `src/lib/supabaseClient.js` | For evidence only; app runs without it |
 
-To learn more about Next.js, take a look at the following resources:
+The same two variables need to be added in **Vercel → Project → Settings →
+Environment Variables** before/after the first deploy (Production **and**
+Preview).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/
+    layout.js       # Root layout, wraps every page with Navbar + Footer
+    page.js          # Homepage (hero, problem/user, roadmap)
+    docs/page.js      # /docs placeholder
+    globals.css
+  components/
+    Navbar.js
+    Footer.js
+  lib/
+    supabaseClient.js # Supabase client (safe no-op if env vars are missing)
+```
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deployed on Vercel from the `main` branch of this GitHub repository.
+Every push to `main` triggers a new deployment.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Live URL: **\<add your Vercel URL here after deploying\>**
+
+## Testing
+
+See the Test Plan in the Build Discipline Packet for this week. In short,
+three self-tests are run against the deployed URL after every deploy:
+
+1. Homepage loads and renders without console errors.
+2. `/docs` is reachable from the navbar and loads.
+3. Navigation and layout hold up on a mobile-width viewport.
+
+## Status
+
+Setup Sprint (Week 1) — infrastructure only. No AI calls are made yet; when
+simulated AI output is introduced in a later week it will be clearly
+labeled as simulated per course rules (no paid APIs required).
