@@ -3,10 +3,17 @@
 An AI-native study planner: give it a messy topic, get back a clear,
 actionable study plan you can save and revisit.
 
-This repository is the **Setup Sprint — Builder Infrastructure** submission:
-free-stack infrastructure (GitHub, Vercel, Supabase, Next.js, Tailwind, a
-coding agent) wired together and deployed, with a homepage, navigation,
-footer, and a `/docs` placeholder.
+This repository now covers two weekly submissions:
+
+- **Setup Sprint — Builder Infrastructure** (done): free-stack infrastructure
+  (GitHub, Vercel, Supabase, Next.js, Tailwind, a coding agent) wired
+  together and deployed, with a homepage, navigation, footer, and a `/docs`
+  placeholder.
+- **Week 1 — Generative Core Agent** (current): a working `/core` page that
+  turns a messy pasted topic into a structured "core extraction" — topic,
+  key concepts, and a suggested study order — using a **simulated** engine
+  (no paid AI API), with results saved to Supabase and shown in a small
+  dashboard preview.
 
 ## Tech stack
 
@@ -48,16 +55,34 @@ Preview).
 ```
 src/
   app/
-    layout.js       # Root layout, wraps every page with Navbar + Footer
-    page.js          # Homepage (hero, problem/user, roadmap)
-    docs/page.js      # /docs placeholder
+    layout.js        # Root layout, wraps every page with Navbar + Footer
+    page.js           # Homepage (hero, problem/user, roadmap)
+    core/page.js       # /core — Generative Core Agent (Week 1)
+    docs/page.js        # /docs — placeholder + prompt library entry
     globals.css
   components/
     Navbar.js
     Footer.js
   lib/
-    supabaseClient.js # Supabase client (safe no-op if env vars are missing)
+    supabaseClient.js  # Supabase client + core_outputs save/list helpers
+    coreEngine.js        # Simulated core-extraction logic (see /docs)
+sql/
+  core_outputs.sql      # Run once in Supabase SQL editor to create the table
 ```
+
+## Generative Core Agent (`/core`)
+
+Paste a messy topic, chapter, or set of notes and the page returns a
+structured "core extraction" card: the core topic, 3-5 key concepts, a
+suggested study order, and why the topic matters. This is a **simulated**
+AI output — `src/lib/coreEngine.js` uses text heuristics, not a real model
+call — clearly labeled in the UI per the course rule on simulated output.
+The exact prompt this stands in for is documented on `/docs` so it's a
+drop-in swap once a real API is allowed.
+
+Saving a result writes a row to the `core_outputs` table in Supabase
+(schema in `sql/core_outputs.sql`); the dashboard preview at the bottom of
+`/core` reads the 5 most recent saved rows back.
 
 ## Deployment
 
@@ -77,6 +102,7 @@ three self-tests are run against the deployed URL after every deploy:
 
 ## Status
 
-Setup Sprint (Week 1) — infrastructure only. No AI calls are made yet; when
-simulated AI output is introduced in a later week it will be clearly
-labeled as simulated per course rules (no paid APIs required).
+Setup Sprint — done. Week 1 (Generative Core Agent) — in progress: `/core`
+is live with a simulated core-extraction engine, Supabase save, and a
+dashboard preview. No paid AI API is used; simulated output is clearly
+labeled per course rules.

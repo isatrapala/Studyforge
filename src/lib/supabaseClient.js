@@ -22,3 +22,35 @@ export const supabase =
     : null;
 
 export const isSupabaseConfigured = Boolean(supabase);
+
+// ---------------------------------------------------------------------------
+// core_outputs — Week 1: Generative Core Agent
+//
+// Table created via sql/core_outputs.sql. Both helpers below are safe no-ops
+// (return a clear "not configured" result) when Supabase isn't wired up yet,
+// so the /core page still works locally even before the table exists.
+// ---------------------------------------------------------------------------
+
+export async function saveCoreOutput({ title, inputText, output }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("core_outputs")
+    .insert([{ title, input_text: inputText, output_json: output }])
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function listCoreOutputs(limit = 10) {
+  if (!supabase) {
+    return { data: [], error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("core_outputs")
+    .select("id, title, input_text, output_json, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}
