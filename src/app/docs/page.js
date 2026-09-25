@@ -1,123 +1,148 @@
-const roadmap = [
+const corePrompt = `You are a study coach. Given a messy topic, chapter, or set of
+notes, extract its core:
+
+1. coreTopic — a short name for what this material is actually about.
+2. keyConcepts — 3 to 5 key concepts a student must know, in order of
+   importance.
+3. studySteps — a suggested study order broken into small, doable chunks.
+4. whyItMatters — one sentence on why understanding this topic first makes
+   everything after it easier.
+
+Return strict JSON with exactly those four fields. Do not add commentary
+outside the JSON.
+
+Input:
+"""
+{{rawText}}
+"""`;
+
+const dataModel = [
   {
-    week: "Setup Sprint — Builder Infrastructure",
-    status: "Done",
-    detail:
-      "GitHub, Vercel, Supabase, Next.js + Tailwind app running, README, homepage/nav/footer/docs.",
+    table: "core_outputs",
+    week: "Week 1",
+    columns: [
+      ["title", "text", "Optional student-provided title"],
+      ["input_text", "text", "The raw, messy text that was pasted in"],
+      [
+        "output_json",
+        "jsonb",
+        "{ coreTopic, keyConcepts[], studySteps[], whyItMatters, simulated: true }",
+      ],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
   },
   {
-    week: "Week 1 — Generative Core Agent",
-    status: "In progress",
-    detail:
-      "/core: paste a messy topic, get a simulated core-extraction card (topic, key concepts, study order), save it to Supabase, and see it in the dashboard preview.",
-  },
-  {
-    week: "Next — Testing & Iteration",
-    status: "Planned",
-    detail: "Self-tests, bug fixes, and a redeploy based on what testing found.",
+    table: "research_outputs",
+    week: "Week 2",
+    columns: [
+      ["title", "text", "Optional label for the research entry"],
+      [
+        "method",
+        "text",
+        "How the research was gathered: Entrevista, Encuesta, Observación, Investigación de escritorio",
+      ],
+      ["summary", "text", "What was asked and what the person/source said"],
+      [
+        "validates_hypothesis",
+        "text",
+        "yes / no / mixed — whether this entry supports the \"messy notes\" problem",
+      ],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
   },
 ];
 
-export default function Home() {
+export default function DocsPage() {
   return (
-    <main className="flex-1">
-      {/* Hero */}
-      <section className="border-b border-zinc-200 bg-gradient-to-b from-indigo-50 to-white">
-        <div className="mx-auto max-w-5xl px-6 py-20 text-center">
-          <span className="inline-block rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
-            Week 1 &middot; Generative Core Agent
-          </span>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
-            StudyForge AI
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-zinc-600">
-            An AI-native study planner that turns a messy topic into a clear,
-            actionable study plan &mdash; and remembers it for you.
-          </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
-              href="/core"
-              className="rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
-            >
-              Try the Core Agent
-            </a>
-            <a
-              href="/docs"
-              className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
-            >
-              View Docs
-            </a>
-            <a
-              href="https://github.com/isatrapala/Studyforge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
-            >
-              View on GitHub
-            </a>
-          </div>
-        </div>
+    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
+      <span className="inline-block rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+        Docs
+      </span>
+      <h1 className="mt-3 text-3xl font-semibold text-zinc-900">
+        Docs &amp; prompt library
+      </h1>
+      <p className="mt-2 max-w-2xl text-zinc-600">
+        The prompts and data model behind each week&apos;s feature, so
+        simulated output can be swapped for a real model call once the
+        course allows a live API key, and so the Supabase schema is
+        documented in one place.
+      </p>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-zinc-900">
+          Week 1 — Generative Core Agent
+        </h2>
+        <p className="mt-2 text-sm text-zinc-600">
+          <code>/core</code> currently uses{" "}
+          <code>src/lib/coreEngine.js</code>, a deterministic, simulated
+          heuristic (sentence splitting + word frequency) — clearly labeled
+          &ldquo;Simulated output&rdquo; in the UI. This is the prompt it
+          stands in for:
+        </p>
+        <pre className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-900 p-4 text-xs text-zinc-100">
+          <code>{corePrompt}</code>
+        </pre>
       </section>
 
-      {/* Problem / User */}
-      <section className="mx-auto max-w-5xl px-6 py-16">
-        <div className="grid gap-8 sm:grid-cols-2">
-          <div className="rounded-xl border border-zinc-200 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-              The problem
-            </h2>
-            <p className="mt-3 text-zinc-700">
-              Students often know *what* they need to study but freeze when
-              it comes to breaking that topic into a realistic plan, so they
-              procrastinate or study inefficiently.
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-              Who it&apos;s for
-            </h2>
-            <p className="mt-3 text-zinc-700">
-              Students preparing for exams or coursework who want a quick,
-              structured starting point instead of a blank page.
-            </p>
-          </div>
-        </div>
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-zinc-900">
+          Week 2 — Research + Benchmarking Dashboard
+        </h2>
+        <p className="mt-2 text-sm text-zinc-600">
+          <code>/research</code> is not AI-generated: the 5 global examples
+          and 8 direct competitors in <code>src/lib/researchData.js</code>{" "}
+          are manually curated reference data, and the &ldquo;Overlap&rdquo;
+          / &ldquo;Threat&rdquo; scores are a first-pass judgment call (a
+          standard 2x2 competitive-positioning technique), not a
+          measurement — meant to be revised as real research comes in.
+        </p>
+        <p className="mt-2 text-sm text-zinc-600">
+          The research log itself (the &ldquo;Log a research finding&rdquo;
+          form) is where genuine human validation is recorded: who was
+          asked, what method was used, what they said, and whether it
+          supports the core &ldquo;messy notes&rdquo; problem hypothesis.
+        </p>
       </section>
 
-      {/* Roadmap */}
-      <section className="border-t border-zinc-200 bg-zinc-50">
-        <div className="mx-auto max-w-5xl px-6 py-16">
-          <h2 className="text-2xl font-semibold text-zinc-900">
-            Project roadmap
-          </h2>
-          <p className="mt-2 text-zinc-600">
-            What&apos;s built, and what&apos;s coming next, week by week.
-          </p>
-
-          <ol className="mt-8 space-y-4">
-            {roadmap.map((item) => (
-              <li
-                key={item.week}
-                className="flex flex-col gap-1 rounded-xl border border-zinc-200 bg-white p-5 sm:flex-row sm:items-start sm:justify-between"
-              >
-                <div>
-                  <p className="font-medium text-zinc-900">{item.week}</p>
-                  <p className="mt-1 text-sm text-zinc-600">{item.detail}</p>
-                </div>
-                <span
-                  className={`mt-2 inline-block w-fit rounded-full px-3 py-1 text-xs font-semibold sm:mt-0 ${
-                    item.status === "In progress"
-                      ? "bg-amber-100 text-amber-800"
-                      : item.status === "Done"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-zinc-100 text-zinc-600"
-                  }`}
-                >
-                  {item.status}
-                </span>
-              </li>
-            ))}
-          </ol>
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-zinc-900">Data model</h2>
+        <div className="mt-4 space-y-8">
+          {dataModel.map((t) => (
+            <div key={t.table}>
+              <p className="text-sm font-semibold text-zinc-900">
+                <code>{t.table}</code>{" "}
+                <span className="font-normal text-zinc-500">— {t.week}</span>
+              </p>
+              <div className="mt-2 overflow-x-auto rounded-xl border border-zinc-200">
+                <table className="min-w-full divide-y divide-zinc-200 text-sm">
+                  <thead className="bg-zinc-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-semibold text-zinc-700">
+                        Column
+                      </th>
+                      <th className="px-4 py-2 text-left font-semibold text-zinc-700">
+                        Type
+                      </th>
+                      <th className="px-4 py-2 text-left font-semibold text-zinc-700">
+                        Notes
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {t.columns.map(([col, type, notes]) => (
+                      <tr key={col}>
+                        <td className="px-4 py-2 font-mono text-xs text-zinc-800">
+                          {col}
+                        </td>
+                        <td className="px-4 py-2 text-xs text-zinc-500">{type}</td>
+                        <td className="px-4 py-2 text-zinc-600">{notes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </main>

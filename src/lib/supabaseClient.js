@@ -54,3 +54,44 @@ export async function listCoreOutputs(limit = 10) {
     .limit(limit);
   return { data: data || [], error };
 }
+
+// ---------------------------------------------------------------------------
+// research_outputs — Week 2: Research + Benchmarking Dashboard
+//
+// Table created via sql/research_outputs.sql. Stores the research/validation
+// entries a student logs on /research (e.g. "talked to a classmate about
+// messy notes"). The 5 global examples + 8 competitors shown on /research
+// are static reference data (src/lib/researchData.js), not stored here.
+// Same "not configured yet" safe no-op pattern as the core_outputs helpers.
+// ---------------------------------------------------------------------------
+
+export async function saveResearchOutput({ title, method, summary, validatesHypothesis }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("research_outputs")
+    .insert([
+      {
+        title,
+        method,
+        summary,
+        validates_hypothesis: validatesHypothesis,
+      },
+    ])
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function listResearchOutputs(limit = 10) {
+  if (!supabase) {
+    return { data: [], error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("research_outputs")
+    .select("id, title, method, summary, validates_hypothesis, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}

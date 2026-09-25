@@ -3,17 +3,21 @@
 An AI-native study planner: give it a messy topic, get back a clear,
 actionable study plan you can save and revisit.
 
-This repository now covers two weekly submissions:
+This repository now covers three weekly submissions:
 
 - **Setup Sprint — Builder Infrastructure** (done): free-stack infrastructure
   (GitHub, Vercel, Supabase, Next.js, Tailwind, a coding agent) wired
   together and deployed, with a homepage, navigation, footer, and a `/docs`
   placeholder.
-- **Week 1 — Generative Core Agent** (current): a working `/core` page that
+- **Week 1 — Generative Core Agent** (done): a working `/core` page that
   turns a messy pasted topic into a structured "core extraction" — topic,
   key concepts, and a suggested study order — using a **simulated** engine
   (no paid AI API), with results saved to Supabase and shown in a small
   dashboard preview.
+- **Week 2 — Research + Benchmarking Dashboard** (current): a working
+  `/research` page with 5 global example products, 8 direct competitors, a
+  risk map (overlap vs. competitive threat), a search/filter, and a research
+  log for recording real human validation of the core "messy notes" problem.
 
 ## Tech stack
 
@@ -55,19 +59,22 @@ Preview).
 ```
 src/
   app/
-    layout.js        # Root layout, wraps every page with Navbar + Footer
-    page.js           # Homepage (hero, problem/user, roadmap)
-    core/page.js       # /core — Generative Core Agent (Week 1)
-    docs/page.js        # /docs — placeholder + prompt library entry
+    layout.js          # Root layout, wraps every page with Navbar + Footer
+    page.js             # Homepage (hero, problem/user, roadmap)
+    core/page.js         # /core — Generative Core Agent (Week 1)
+    research/page.js      # /research — Research + Benchmarking Dashboard (Week 2)
+    docs/page.js            # /docs — prompt library + data model reference
     globals.css
   components/
     Navbar.js
     Footer.js
   lib/
-    supabaseClient.js  # Supabase client + core_outputs save/list helpers
+    supabaseClient.js  # Supabase client + core_outputs/research_outputs helpers
     coreEngine.js        # Simulated core-extraction logic (see /docs)
+    researchData.js        # Static seed data: 5 global examples + 8 competitors
 sql/
   core_outputs.sql      # Run once in Supabase SQL editor to create the table
+  research_outputs.sql   # Run once in Supabase SQL editor to create the table
 ```
 
 ## Generative Core Agent (`/core`)
@@ -84,6 +91,25 @@ Saving a result writes a row to the `core_outputs` table in Supabase
 (schema in `sql/core_outputs.sql`); the dashboard preview at the bottom of
 `/core` reads the 5 most recent saved rows back.
 
+## Research + Benchmarking Dashboard (`/research`)
+
+`/research` has two parts:
+
+1. **Benchmarking table + risk map** — 5 well-known global tools (Notion AI,
+   Obsidian, Anki, Quizlet, RemNote) and 8 more direct competitors (Google
+   NotebookLM, Mem, Wisdolia, StudyFetch, Khanmigo, Glasp, Otter.ai,
+   Aprende.org), defined as static reference data in
+   `src/lib/researchData.js`. A search box filters the table by name,
+   country, or description. The risk map plots each entry by how much its
+   core mechanic overlaps with StudyForge's and how much of a competitive
+   threat it poses right now — a first-pass judgment call meant to be
+   revised as real research comes in, not a scientific measurement.
+2. **Research log** — a form for recording real human validation (an
+   interview, a survey response, a note from trying a competitor's app) and
+   whether it supports the "messy notes" problem hypothesis. Entries save to
+   the `research_outputs` table (schema in `sql/research_outputs.sql`) and
+   show up in a dashboard preview of the 5 most recent entries.
+
 ## Deployment
 
 Deployed on Vercel from the `main` branch of this GitHub repository.
@@ -94,15 +120,19 @@ Live URL: **\<add your Vercel URL here after deploying\>**
 ## Testing
 
 See the Test Plan in the Build Discipline Packet for this week. In short,
-three self-tests are run against the deployed URL after every deploy:
+self-tests are run against the deployed URL after every deploy:
 
 1. Homepage loads and renders without console errors.
 2. `/docs` is reachable from the navbar and loads.
 3. Navigation and layout hold up on a mobile-width viewport.
+4. `/research` loads with the 5 global examples, 8 competitors, and the risk
+   map; the search/filter narrows the table correctly (e.g. searching
+   "México" matches Quizlet and Aprende.org); saving a research entry shows
+   up in the dashboard preview without duplicating.
 
 ## Status
 
-Setup Sprint — done. Week 1 (Generative Core Agent) — in progress: `/core`
-is live with a simulated core-extraction engine, Supabase save, and a
-dashboard preview. No paid AI API is used; simulated output is clearly
-labeled per course rules.
+Setup Sprint — done. Week 1 (Generative Core Agent) — done. Week 2
+(Research + Benchmarking Dashboard) — in progress: `/research` is live with
+the benchmarking table, risk map, and research log wired to Supabase. No
+paid AI API is used; simulated output is clearly labeled per course rules.
