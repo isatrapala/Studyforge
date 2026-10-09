@@ -13,14 +13,15 @@ const roadmap = [
   },
   {
     week: "Week 2 — Research + Benchmarking Dashboard",
-    status: "In progress",
+    status: "Done",
     detail:
       "/research: 5 global examples, 8 direct competitors, a risk map, and a research log for validating the core problem with real people.",
   },
   {
-    week: "Next — Testing & Iteration",
-    status: "Planned",
-    detail: "Self-tests, bug fixes, and a redeploy based on what testing found.",
+    week: "Week 3 — Product Architecture + Pricing Simulator",
+    status: "In progress",
+    detail:
+      "/product and /pricing: 3 pricing tiers, a feature map, 2 customer segments, a revenue calculator with scenarios, and saved scenarios.",
   },
 ];
 
@@ -31,7 +32,7 @@ export default function Home() {
       <section className="border-b border-zinc-200 bg-gradient-to-b from-indigo-50 to-white">
         <div className="mx-auto max-w-5xl px-6 py-20 text-center">
           <span className="inline-block rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
-            Week 2 &middot; Research + Benchmarking Dashboard
+            Week 3 &middot; Product + Pricing Simulator
           </span>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
             StudyForge AI
@@ -52,6 +53,12 @@ export default function Home() {
               className="rounded-full border border-indigo-600 px-6 py-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
             >
               View Research &amp; Benchmarking
+            </a>
+            <a
+              href="/pricing"
+              className="rounded-full border border-indigo-600 px-6 py-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
+            >
+              Try the Pricing Simulator
             </a>
             <a
               href="/docs"

@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "StudyForge AI",
   description:
-    "An AI-native study planner — Week 2: Research + Benchmarking Dashboard.",
+    "An AI-native study planner — Week 3: Product Architecture + Pricing Simulator.",
 };
 
 export default function RootLayout({ children }) {

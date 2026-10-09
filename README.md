@@ -3,7 +3,7 @@
 An AI-native study planner: give it a messy topic, get back a clear,
 actionable study plan you can save and revisit.
 
-This repository now covers three weekly submissions:
+This repository now covers four weekly submissions:
 
 - **Setup Sprint — Builder Infrastructure** (done): free-stack infrastructure
   (GitHub, Vercel, Supabase, Next.js, Tailwind, a coding agent) wired
@@ -14,10 +14,14 @@ This repository now covers three weekly submissions:
   key concepts, and a suggested study order — using a **simulated** engine
   (no paid AI API), with results saved to Supabase and shown in a small
   dashboard preview.
-- **Week 2 — Research + Benchmarking Dashboard** (current): a working
+- **Week 2 — Research + Benchmarking Dashboard** (done): a working
   `/research` page with 5 global example products, 8 direct competitors, a
   risk map (overlap vs. competitive threat), a search/filter, and a research
   log for recording real human validation of the core "messy notes" problem.
+- **Week 3 — Product Architecture + Pricing Simulator** (current): a `/product`
+  page (3 pricing tiers, feature map, 2 customer segments) and a `/pricing`
+  simulator (revenue calculator, scenario toggle, assumptions table, saved
+  scenarios in Supabase).
 
 ## Tech stack
 
@@ -63,6 +67,8 @@ src/
     page.js             # Homepage (hero, problem/user, roadmap)
     core/page.js         # /core — Generative Core Agent (Week 1)
     research/page.js      # /research — Research + Benchmarking Dashboard (Week 2)
+    product/page.js        # /product — tiers, feature map, segments (Week 3)
+    pricing/page.js         # /pricing — pricing simulator (Week 3)
     docs/page.js            # /docs — prompt library + data model reference
     globals.css
   components/
@@ -72,9 +78,14 @@ src/
     supabaseClient.js  # Supabase client + core_outputs/research_outputs helpers
     coreEngine.js        # Simulated core-extraction logic (see /docs)
     researchData.js        # Static seed data: 5 global examples + 8 competitors
+    pricingData.js          # Tiers, segments, feature map, scenarios, assumptions
+    pricingEngine.js         # Pure revenue functions (tested)
+    pricingEngine.test.js     # Pricing logic tests (npm test)
 sql/
   core_outputs.sql      # Run once in Supabase SQL editor to create the table
   research_outputs.sql   # Run once in Supabase SQL editor to create the table
+  pricing_scenarios.sql   # Run once in Supabase SQL editor (safe to run again)
+docs/week3/               # Week 3 plan, UX mockup, and date/time evidence note
 ```
 
 ## Generative Core Agent (`/core`)
@@ -110,6 +121,22 @@ Saving a result writes a row to the `core_outputs` table in Supabase
    the `research_outputs` table (schema in `sql/research_outputs.sql`) and
    show up in a dashboard preview of the 5 most recent entries.
 
+## Product + Pricing Simulator (`/product`, `/pricing`)
+
+- `/product` shows the 3 tiers (Free MXN 0, Plus MXN 79, Pro MXN 149 per
+  month), a feature map by tier, and the 2 customer segments: individual
+  students and universities/schools (B2B, assumed MXN 99 per seat per month).
+- `/pricing` is a calculator. Inputs: number of students, the Free / Plus /
+  Pro split (must add up to 100%), number of schools, seats per school and
+  price per seat. Output: monthly revenue and annual revenue (monthly x 12).
+  The scenario toggle (Conservative / Expected / Optimistic) fills the inputs
+  with a preset. Scenarios can be named and saved to the `pricing_scenarios`
+  table (`sql/pricing_scenarios.sql`) and are listed below the calculator.
+- All numbers are the team's own assumptions. Left out on purpose: payments,
+  taxes, churn, discounts.
+- The math lives in `src/lib/pricingEngine.js` as pure functions so it can be
+  tested without the browser.
+
 ## Deployment
 
 Deployed on Vercel from the `main` branch of this GitHub repository.
@@ -129,10 +156,17 @@ self-tests are run against the deployed URL after every deploy:
    map; the search/filter narrows the table correctly (e.g. searching
    "México" matches Quizlet and Aprende.org); saving a research entry shows
    up in the dashboard preview without duplicating.
+5. Week 3, run `npm test` (4 pricing logic tests): Expected preset gives
+   30,700 (individual) + 59,400 (B2B) = 90,100 MXN per month; a split that is
+   not 100% is blocked.
+6. Week 3, on the live site: `/product` and `/pricing` load; the scenario
+   toggle changes the numbers; saving a scenario shows it once in the list
+   and it is still there after reload.
 
 ## Status
 
 Setup Sprint — done. Week 1 (Generative Core Agent) — done. Week 2
-(Research + Benchmarking Dashboard) — in progress: `/research` is live with
-the benchmarking table, risk map, and research log wired to Supabase. No
+(Research + Benchmarking Dashboard) — done. Week 3 (Product Architecture +
+Pricing Simulator) — in progress: `/product` and `/pricing` are built, with
+scenarios saved to Supabase. No
 paid AI API is used; simulated output is clearly labeled per course rules.

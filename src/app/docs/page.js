@@ -50,6 +50,18 @@ const dataModel = [
       ["created_at", "timestamptz", "Set automatically on insert"],
     ],
   },
+  {
+    table: "pricing_scenarios",
+    week: "Week 3",
+    columns: [
+      ["name", "text", "Name the student gave the scenario"],
+      ["scenario", "text", "conservative / expected / optimistic / custom"],
+      ["inputs_json", "jsonb", "All calculator inputs at the time of saving"],
+      ["monthly_revenue", "numeric", "Calculated monthly revenue in MXN"],
+      ["annual_revenue", "numeric", "Calculated annual revenue (monthly x 12)"],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
+  },
 ];
 
 export default function DocsPage() {
