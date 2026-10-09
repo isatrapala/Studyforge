@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   SCENARIOS,
   SCENARIO_ORDER,
   ASSUMPTIONS,
 } from "@/lib/pricingData";
 import { calcRevenue, formatMXN } from "@/lib/pricingEngine";
+import { saveScenario, listScenarios } from "@/lib/supabaseClient";
 
 const FIELDS = [
   { key: "users", label: "Individual students (users)", suffix: "" },
@@ -22,7 +23,61 @@ export default function PricingPage() {
   const [scenarioKey, setScenarioKey] = useState("expected");
   const [inputs, setInputs] = useState({ ...SCENARIOS.expected.inputs });
 
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null); // { type: "ok" | "error", text }
+  const [saved, setSaved] = useState([]);
+  const [loadError, setLoadError] = useState(null);
+
   const result = calcRevenue(inputs);
+
+  async function refreshSaved() {
+    const { data, error } = await listScenarios(10);
+    setSaved(data);
+    setLoadError(error ? error.message : null);
+  }
+
+  useEffect(() => {
+    let active = true;
+    listScenarios(10).then(({ data, error }) => {
+      if (!active) return;
+      setSaved(data);
+      setLoadError(error ? error.message : null);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleSave() {
+    if (saving) return;
+    if (!result.ok) {
+      setMessage({ type: "error", text: "Fix the inputs before saving." });
+      return;
+    }
+    const cleanName = name.trim();
+    if (!cleanName) {
+      setMessage({ type: "error", text: "Give the scenario a name first." });
+      return;
+    }
+    setSaving(true);
+    setMessage(null);
+    const { error } = await saveScenario({
+      name: cleanName,
+      scenario: scenarioKey,
+      inputs,
+      monthlyRevenue: result.monthly,
+      annualRevenue: result.annual,
+    });
+    setSaving(false);
+    if (error) {
+      setMessage({ type: "error", text: `Could not save: ${error.message}` });
+      return;
+    }
+    setMessage({ type: "ok", text: "Saved to Supabase." });
+    setName("");
+    await refreshSaved();
+  }
 
   function chooseScenario(key) {
     setScenarioKey(key);
@@ -140,6 +195,27 @@ export default function PricingPage() {
                   </tr>
                 </tbody>
               </table>
+
+              <div className="border-t border-zinc-200 pt-4">
+                <label className="block text-sm">
+                  <span className="font-medium text-zinc-700">Scenario name</span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Example: Plan for 2 schools"
+                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="mt-3 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {saving ? "Saving..." : "Save scenario"}
+                </button>
+              </div>
             </div>
           ) : (
             <div
@@ -156,6 +232,59 @@ export default function PricingPage() {
           )}
         </section>
       </div>
+
+      {/* Message */}
+      {message && (
+        <p
+          role="status"
+          className={`mt-4 text-sm font-medium ${
+            message.type === "ok" ? "text-emerald-700" : "text-red-700"
+          }`}
+        >
+          {message.text}
+        </p>
+      )}
+
+      {/* Saved scenarios */}
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-zinc-900">Saved scenarios</h2>
+        <p className="mt-1 text-sm text-zinc-600">The 10 most recent, read from Supabase.</p>
+        {loadError && (
+          <p className="mt-2 text-sm text-red-700">Could not load: {loadError}</p>
+        )}
+        {saved.length === 0 && !loadError ? (
+          <p className="mt-4 rounded-xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-500">
+            No saved scenarios yet.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200">
+            <table className="min-w-full divide-y divide-zinc-200 text-sm">
+              <thead className="bg-zinc-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-semibold text-zinc-700">Name</th>
+                  <th className="px-4 py-2 text-left font-semibold text-zinc-700">Scenario</th>
+                  <th className="px-4 py-2 text-right font-semibold text-zinc-700">Monthly</th>
+                  <th className="px-4 py-2 text-right font-semibold text-zinc-700">Annual</th>
+                  <th className="px-4 py-2 text-left font-semibold text-zinc-700">Saved</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {saved.map((row) => (
+                  <tr key={row.id}>
+                    <td className="px-4 py-2 font-medium text-zinc-800">{row.name}</td>
+                    <td className="px-4 py-2 capitalize text-zinc-600">{row.scenario}</td>
+                    <td className="px-4 py-2 text-right text-zinc-800">{formatMXN(row.monthly_revenue)}</td>
+                    <td className="px-4 py-2 text-right text-zinc-800">{formatMXN(row.annual_revenue)}</td>
+                    <td className="px-4 py-2 text-zinc-500">
+                      {new Date(row.created_at).toLocaleString("en-US")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* Assumptions */}
       <section className="mt-12">
