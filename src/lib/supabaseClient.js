@@ -95,3 +95,43 @@ export async function listResearchOutputs(limit = 10) {
     .limit(limit);
   return { data: data || [], error };
 }
+
+// ---------------------------------------------------------------------------
+// pricing_scenarios — Week 3: Product Architecture + Pricing Simulator
+//
+// Table created via sql/pricing_scenarios.sql. Stores the pricing scenarios
+// a student saves on /pricing (inputs + calculated monthly/annual revenue).
+// Same "not configured yet" safe no-op pattern as the helpers above.
+// ---------------------------------------------------------------------------
+
+export async function saveScenario({ name, scenario, inputs, monthlyRevenue, annualRevenue }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("pricing_scenarios")
+    .insert([
+      {
+        name,
+        scenario,
+        inputs_json: inputs,
+        monthly_revenue: monthlyRevenue,
+        annual_revenue: annualRevenue,
+      },
+    ])
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function listScenarios(limit = 10) {
+  if (!supabase) {
+    return { data: [], error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("pricing_scenarios")
+    .select("id, name, scenario, inputs_json, monthly_revenue, annual_revenue, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}
