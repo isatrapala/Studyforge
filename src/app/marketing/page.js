@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CopyButton from "@/components/CopyButton";
 import AbTester from "@/components/AbTester";
+import SaveAssetButton from "@/components/SaveAssetButton";
+import { listMarketingAssets } from "@/lib/supabaseClient";
 import { BRAND, PERSONA, TONES, AB_TESTS } from "@/lib/brandData";
 import {
   validateInputs,
@@ -11,6 +13,8 @@ import {
   scriptToText,
   landingToText,
   calendarToText,
+  kitToMarkdown,
+  kitToJson,
 } from "@/lib/marketingEngine";
 
 const DEFAULT_INPUTS = {
@@ -19,10 +23,43 @@ const DEFAULT_INPUTS = {
   tone: "Friendly",
 };
 
+// Downloads a text file in the browser. No server needed.
+function downloadFile(filename, text, mime) {
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function MarketingPage() {
   const [inputs, setInputs] = useState(DEFAULT_INPUTS);
   const [errors, setErrors] = useState([]);
   const [kit, setKit] = useState(null);
+  const [saved, setSaved] = useState([]);
+  const [loadError, setLoadError] = useState(null);
+
+  async function refreshSaved() {
+    const { data, error } = await listMarketingAssets(10);
+    setSaved(data);
+    setLoadError(error ? error.message : null);
+  }
+
+  useEffect(() => {
+    let active = true;
+    listMarketingAssets(10).then(({ data, error }) => {
+      if (!active) return;
+      setSaved(data);
+      setLoadError(error ? error.message : null);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleChange(field, value) {
     setInputs((prev) => ({ ...prev, [field]: value }));
@@ -193,15 +230,40 @@ export default function MarketingPage() {
           </p>
         ) : (
           <>
-            <p className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-              {kit.label}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                {kit.label}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => downloadFile("marketing-kit.md", kitToMarkdown(kit), "text/markdown")}
+                  className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-zinc-700"
+                >
+                  Export .md
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadFile("marketing-kit.json", kitToJson(kit), "application/json")}
+                  className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-zinc-700"
+                >
+                  Export .json
+                </button>
+              </div>
+            </div>
 
             {/* Landing copy */}
             <section className="rounded-xl border border-zinc-200 p-6">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-zinc-900">Landing page copy</h2>
-                <CopyButton text={landingToText(kit.landing)} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <CopyButton text={landingToText(kit.landing)} />
+                  <SaveAssetButton
+                    assetType="landing"
+                    content={landingToText(kit.landing)}
+                    onSaved={refreshSaved}
+                  />
+                </div>
               </div>
               <p className="mt-3 text-xl font-bold text-zinc-900">{kit.landing.headline}</p>
               <p className="mt-1 text-zinc-700">{kit.landing.subheadline}</p>
@@ -238,6 +300,13 @@ export default function MarketingPage() {
                     </div>
                     <p className="mt-3 text-sm text-zinc-800">{post.text}</p>
                     <p className="mt-2 text-xs text-indigo-700">{post.hashtags.join(" ")}</p>
+                    <div className="mt-3">
+                      <SaveAssetButton
+                        assetType="post"
+                        content={postToText(post)}
+                        onSaved={refreshSaved}
+                      />
+                    </div>
                   </article>
                 ))}
               </div>
@@ -265,6 +334,13 @@ export default function MarketingPage() {
                     <p className="mt-1 text-sm text-zinc-800">
                       <span className="font-semibold">Call to action:</span> {script.cta}
                     </p>
+                    <div className="mt-3">
+                      <SaveAssetButton
+                        assetType="script"
+                        content={scriptToText(script)}
+                        onSaved={refreshSaved}
+                      />
+                    </div>
                   </article>
                 ))}
               </div>
@@ -274,7 +350,14 @@ export default function MarketingPage() {
             <section className="rounded-xl border border-zinc-200 p-6">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-zinc-900">14-day campaign calendar</h2>
-                <CopyButton text={calendarToText(kit.calendar)} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <CopyButton text={calendarToText(kit.calendar)} />
+                  <SaveAssetButton
+                    assetType="calendar"
+                    content={calendarToText(kit.calendar)}
+                    onSaved={refreshSaved}
+                  />
+                </div>
               </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -316,6 +399,46 @@ export default function MarketingPage() {
               <AbTester key={test.id} test={test} />
             ))}
           </div>
+        </section>
+
+        {/* Saved assets */}
+        <section className="rounded-xl border border-zinc-200 p-6">
+          <h2 className="text-lg font-semibold text-zinc-900">Saved assets</h2>
+          <p className="mt-1 text-sm text-zinc-600">
+            The last 10 pieces saved in Supabase.
+          </p>
+          {loadError && (
+            <p className="mt-3 text-sm text-red-700" role="alert">
+              Could not load saved assets: {loadError}
+            </p>
+          )}
+          {saved.length === 0 && !loadError ? (
+            <p className="mt-3 text-sm text-zinc-600">Nothing saved yet.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-zinc-100">
+              {saved.map((asset) => (
+                <li key={asset.id} className="py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-zinc-900">
+                      {asset.title}{" "}
+                      <span className="ml-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700">
+                        {asset.asset_type}
+                      </span>
+                    </p>
+                    <span className="flex items-center gap-3">
+                      <span className="text-xs text-zinc-500">
+                        {new Date(asset.created_at).toLocaleString()}
+                      </span>
+                      <CopyButton text={asset.content} />
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-line text-sm text-zinc-700">
+                    {asset.content}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </main>
