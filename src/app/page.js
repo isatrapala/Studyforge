@@ -1,3 +1,5 @@
+import { BRAND, PERSONA, AB_TESTS } from "../lib/brandData.js";
+
 const roadmap = [
   {
     week: "Setup Sprint — Builder Infrastructure",
@@ -19,88 +21,157 @@ const roadmap = [
   },
   {
     week: "Week 3 — Product Architecture + Pricing Simulator",
-    status: "In progress",
+    status: "Done",
     detail:
       "/product and /pricing: 3 pricing tiers, a feature map, 2 customer segments, a revenue calculator with scenarios, and saved scenarios.",
+  },
+  {
+    week: "Week 4 — Marketing Engine + Content System",
+    status: "In progress",
+    detail:
+      "/marketing: brand system, target persona, landing copy, 10 social posts, 3 video scripts, a 14-day calendar, 2 A/B tests with real votes, and saved assets.",
+  },
+];
+
+const steps = [
+  {
+    title: "Paste your topic",
+    text: "Paste your messy notes or a topic you need to study.",
+  },
+  {
+    title: "Get the core",
+    text: "The Core Agent picks the key ideas and a study order.",
+  },
+  {
+    title: "Study with a plan",
+    text: "Follow the order and save your result for later.",
+  },
+];
+
+const benefits = [
+  {
+    title: "Know what to study first",
+    text: "Start with the core ideas instead of reading everything.",
+  },
+  {
+    title: "Less time sorting notes",
+    text: "Turn a long, messy topic into a short list you can follow.",
+  },
+  {
+    title: "Keep your results",
+    text: "Save each plan so you can open it again before the exam.",
   },
 ];
 
 export default function Home() {
+  // Version A of each A/B test is what visitors see on this page.
+  // Visitors can vote for A or B on /marketing.
+  const headline = AB_TESTS[0].A;
+  const buttonText = AB_TESTS[1].A;
+
   return (
     <main className="flex-1">
       {/* Hero */}
       <section className="border-b border-zinc-200 bg-gradient-to-b from-indigo-50 to-white">
         <div className="mx-auto max-w-5xl px-6 py-20 text-center">
           <span className="inline-block rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
-            Week 3 &middot; Product + Pricing Simulator
+            {BRAND.name} &middot; Study planner for university students
           </span>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
-            StudyForge AI
+            {headline}
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-zinc-600">
-            An AI-native study planner that turns a messy topic into a clear,
-            actionable study plan &mdash; and remembers it for you.
+            {BRAND.oneLiner}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
               href="/core"
               className="rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
             >
-              Try the Core Agent
+              {buttonText}
             </a>
             <a
-              href="/research"
-              className="rounded-full border border-indigo-600 px-6 py-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
-            >
-              View Research &amp; Benchmarking
-            </a>
-            <a
-              href="/pricing"
-              className="rounded-full border border-indigo-600 px-6 py-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
-            >
-              Try the Pricing Simulator
-            </a>
-            <a
-              href="/docs"
+              href="/marketing"
               className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
             >
-              View Docs
-            </a>
-            <a
-              href="https://github.com/isatrapala/Studyforge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
-            >
-              View on GitHub
+              Vote on our headline
             </a>
           </div>
+          <p className="mt-4 text-sm text-zinc-500">{BRAND.tagline}</p>
         </div>
       </section>
 
-      {/* Problem / User */}
+      {/* How it works */}
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <div className="grid gap-8 sm:grid-cols-2">
-          <div className="rounded-xl border border-zinc-200 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-              The problem
-            </h2>
-            <p className="mt-3 text-zinc-700">
-              Students often know *what* they need to study but freeze when
-              it comes to breaking that topic into a realistic plan, so they
-              procrastinate or study inefficiently.
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-              Who it&apos;s for
-            </h2>
-            <p className="mt-3 text-zinc-700">
-              Students preparing for exams or coursework who want a quick,
-              structured starting point instead of a blank page.
-            </p>
-          </div>
+        <h2 className="text-center text-2xl font-semibold text-zinc-900">
+          How it works
+        </h2>
+        <ol className="mt-8 grid gap-6 sm:grid-cols-3">
+          {steps.map((step, i) => (
+            <li key={step.title} className="text-center">
+              <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white">
+                {i + 1}
+              </span>
+              <p className="mt-3 font-medium text-zinc-900">{step.title}</p>
+              <p className="mt-1 text-sm text-zinc-600">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Benefits */}
+      <section className="mx-auto max-w-5xl px-6 pb-16">
+        <h2 className="text-center text-2xl font-semibold text-zinc-900">
+          Why {BRAND.name}?
+        </h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+          {benefits.map((item) => (
+            <div
+              key={item.title}
+              className="rounded-xl border border-zinc-200 bg-zinc-50 p-6"
+            >
+              <p className="font-semibold text-zinc-900">{item.title}</p>
+              <p className="mt-2 text-sm text-zinc-600">{item.text}</p>
+            </div>
+          ))}
         </div>
+      </section>
+
+      {/* Who it's for */}
+      <section className="border-y border-zinc-200 bg-zinc-50">
+        <div className="mx-auto max-w-5xl px-6 py-12">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
+            Who it&apos;s for
+          </h2>
+          <p className="mt-3 max-w-2xl text-zinc-700">
+            Students like {PERSONA.name} ({PERSONA.label.toLowerCase()}):{" "}
+            {PERSONA.profile} {PERSONA.situation}
+          </p>
+        </div>
+      </section>
+
+      {/* Pricing teaser + honest note */}
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold text-zinc-900">See the plans</p>
+            <p className="mt-1 text-sm text-zinc-600">
+              Free, Plus and Pro tiers in Mexican pesos, plus a simple calculator
+              for how much revenue they could make.
+            </p>
+          </div>
+          <a
+            href="/pricing"
+            className="w-fit rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700"
+          >
+            View pricing
+          </a>
+        </div>
+        <p className="mt-4 text-sm text-zinc-500">
+          Honest note: {BRAND.name} is a student project. The content on
+          /marketing is simulated from templates, and there are no real
+          customer reviews or numbers on this site.
+        </p>
       </section>
 
       {/* Roadmap */}
