@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import CopyButton from "@/components/CopyButton";
-import { BRAND, PERSONA, TONES } from "@/lib/brandData";
+import AbTester from "@/components/AbTester";
+import { BRAND, PERSONA, TONES, AB_TESTS } from "@/lib/brandData";
 import {
   validateInputs,
   generateMarketingKit,
@@ -302,6 +303,20 @@ export default function MarketingPage() {
             </section>
           </>
         )}
+
+        {/* A/B tests */}
+        <section>
+          <h2 className="text-lg font-semibold text-zinc-900">A/B tests</h2>
+          <p className="mt-1 text-sm text-zinc-600">
+            Vote for the version you like more. Votes are saved in Supabase and
+            come from real people.
+          </p>
+          <div className="mt-4 grid gap-6 lg:grid-cols-2">
+            {AB_TESTS.map((test) => (
+              <AbTester key={test.id} test={test} />
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );
