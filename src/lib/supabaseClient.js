@@ -135,3 +135,65 @@ export async function listScenarios(limit = 10) {
     .limit(limit);
   return { data: data || [], error };
 }
+
+// ---------------------------------------------------------------------------
+// marketing_assets + ab_votes — Week 4: Marketing Engine + Content System
+//
+// Tables created via sql/marketing.sql. marketing_assets stores the pieces a
+// student saves on /marketing. ab_votes stores one row per real vote in the
+// two A/B tests (test_id "headline" or "cta", variant "A" or "B").
+// Same "not configured yet" safe no-op pattern as the helpers above.
+// ---------------------------------------------------------------------------
+
+export async function saveMarketingAsset({ assetType, title, content }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("marketing_assets")
+    .insert([{ asset_type: assetType, title, content }])
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function listMarketingAssets(limit = 10) {
+  if (!supabase) {
+    return { data: [], error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("marketing_assets")
+    .select("id, asset_type, title, content, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}
+
+export async function saveVote({ testId, variant }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("ab_votes")
+    .insert([{ test_id: testId, variant }])
+    .select()
+    .single();
+  return { data, error };
+}
+
+// Returns { A: number, B: number } for one test. Counts rows in the browser
+// after reading them, which is fine for the small number of votes here.
+export async function getVoteCounts(testId) {
+  if (!supabase) {
+    return { data: { A: 0, B: 0 }, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("ab_votes")
+    .select("variant")
+    .eq("test_id", testId);
+  const counts = { A: 0, B: 0 };
+  (data || []).forEach((row) => {
+    if (row.variant === "A" || row.variant === "B") counts[row.variant] += 1;
+  });
+  return { data: counts, error };
+}
