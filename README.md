@@ -18,10 +18,16 @@ This repository now covers four weekly submissions:
   `/research` page with 5 global example products, 8 direct competitors, a
   risk map (overlap vs. competitive threat), a search/filter, and a research
   log for recording real human validation of the core "messy notes" problem.
-- **Week 3 — Product Architecture + Pricing Simulator** (current): a `/product`
+- **Week 3 — Product Architecture + Pricing Simulator** (done): a `/product`
   page (3 pricing tiers, feature map, 2 customer segments) and a `/pricing`
   simulator (revenue calculator, scenario toggle, assumptions table, saved
   scenarios in Supabase).
+- **Week 4 — Marketing Engine + Content System** (current): an upgraded
+  homepage and a `/marketing` page with a brand system, a target persona
+  (Mariana, an archetype), landing page copy, 10 social posts, 3 video
+  scripts, a 14-day calendar, copy and export buttons, saved assets in
+  Supabase, and 2 A/B tests with real votes. The content is **simulated**
+  from templates (no paid AI API) and is labeled that way on the page.
 
 ## Tech stack
 
@@ -69,11 +75,15 @@ src/
     research/page.js      # /research — Research + Benchmarking Dashboard (Week 2)
     product/page.js        # /product — tiers, feature map, segments (Week 3)
     pricing/page.js         # /pricing — pricing simulator (Week 3)
+    marketing/page.js        # /marketing — Marketing Engine (Week 4)
     docs/page.js            # /docs — prompt library + data model reference
     globals.css
   components/
     Navbar.js
     Footer.js
+    CopyButton.js        # Copy to clipboard, shows "Copied" (Week 4)
+    SaveAssetButton.js    # Save a piece of content with a title (Week 4)
+    AbTester.js            # A/B test with real votes in Supabase (Week 4)
   lib/
     supabaseClient.js  # Supabase client + core_outputs/research_outputs helpers
     coreEngine.js        # Simulated core-extraction logic (see /docs)
@@ -81,12 +91,33 @@ src/
     pricingData.js          # Tiers, segments, feature map, scenarios, assumptions
     pricingEngine.js         # Pure revenue functions (tested)
     pricingEngine.test.js     # Pricing logic tests (npm test)
+    brandData.js               # Brand system, persona, A/B test texts (Week 4)
+    marketingEngine.js          # Template-based marketing kit, export, A/B rule
+    marketingEngine.test.js      # Marketing logic tests (npm test)
 sql/
   core_outputs.sql      # Run once in Supabase SQL editor to create the table
   research_outputs.sql   # Run once in Supabase SQL editor to create the table
   pricing_scenarios.sql   # Run once in Supabase SQL editor (safe to run again)
+  marketing.sql            # Week 4: marketing_assets + ab_votes (safe to run again)
 docs/week3/               # Week 3 plan, UX mockup, and date/time evidence note
+docs/week4/               # Week 4 plan, UX mockup, and date/time evidence note
 ```
+
+## Marketing Engine (`/marketing`)
+
+Type a brand name, a one-sentence product description and a tone, and the page
+builds a marketing kit: landing page copy, 10 social posts, 3 video scripts and
+a 14-day calendar where every row points to a real piece. The kit is built from
+**templates** in `src/lib/marketingEngine.js` (no AI API) and the page says
+"Simulated output (templates, no AI API)". Each piece has a Copy button, the
+whole kit can be exported as `.md` or `.json`, and pieces can be saved with a
+title to the `marketing_assets` table (`sql/marketing.sql`).
+
+Two A/B tests (homepage headline and button text) save real votes in the
+`ab_votes` table. A visitor can vote once per test per browser (a soft limit
+kept in `localStorage`). A winner needs at least 10 votes and 60% for one
+version; otherwise the page says "No clear winner". The homepage shows version
+A until the votes decide.
 
 ## Generative Core Agent (`/core`)
 
@@ -162,11 +193,20 @@ self-tests are run against the deployed URL after every deploy:
 6. Week 3, on the live site: `/product` and `/pricing` load; the scenario
    toggle changes the numbers; saving a scenario shows it once in the list
    and it is still there after reload.
+7. Week 4, run `npm test` (11 tests in total, 7 for marketing): the kit has 10
+   posts, 3 scripts and 14 calendar days; invalid input is blocked; the A/B
+   winner rule works.
+8. Week 4, on the live site: `/` and `/marketing` load; "Generate content"
+   builds the kit and Copy shows "Copied"; saving an asset shows it in the
+   list and it is still there after reload; an empty title is blocked.
+9. Week 4 A/B tests: real people vote on `/marketing` and the counts match the
+   rows in the `ab_votes` table.
 
 ## Status
 
 Setup Sprint — done. Week 1 (Generative Core Agent) — done. Week 2
 (Research + Benchmarking Dashboard) — done. Week 3 (Product Architecture +
-Pricing Simulator) — in progress: `/product` and `/pricing` are built, with
-scenarios saved to Supabase. No
+Pricing Simulator) — done. Week 4 (Marketing Engine + Content System) — in
+progress: `/marketing` is built, with assets and A/B votes saved to Supabase.
+Run `sql/marketing.sql` in Supabase before using it. No
 paid AI API is used; simulated output is clearly labeled per course rules.
