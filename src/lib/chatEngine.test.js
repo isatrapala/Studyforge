@@ -9,6 +9,7 @@ import {
   checkGuardrails,
   buildStudyPlan,
   summarizeSession,
+  parseSubject,
 } from "./chatEngine.js";
 
 test("there are exactly 3 intake questions", () => {
@@ -91,4 +92,29 @@ test("session summaries are short and clear", () => {
   );
   assert.ok(summarizeSession({ answers: {}, outcome: "blocked", category: "cheating" }).includes("cheating"));
   assert.ok(summarizeSession({ answers: {}, outcome: "human" }).startsWith("Human checkpoint"));
+});
+
+// Improvement after external tests: two testers asked for a more specific plan.
+test("topics after a colon are parsed", () => {
+  assert.deepEqual(parseSubject("Economics: inflation, GDP and supply"), {
+    subject: "Economics",
+    topics: ["inflation", "GDP", "supply"],
+  });
+  assert.deepEqual(parseSubject("Math"), { subject: "Math", topics: [] });
+});
+
+test("a plan with topics names a topic on each day", () => {
+  const plan = buildStudyPlan({ subject: "Economics: inflation, GDP, supply", days: 4, hours: 2 });
+  assert.equal(plan.lines.length, 4);
+  assert.ok(plan.title.includes("Economics"));
+  assert.ok(!plan.title.includes("inflation"));
+  assert.ok(plan.lines[0].text.includes("inflation"));
+  assert.ok(plan.lines[1].text.includes("GDP"));
+  assert.ok(plan.lines[3].text.includes("all topics: inflation, GDP, supply"));
+  assert.deepEqual(plan.topics, ["inflation", "GDP", "supply"]);
+});
+
+test("longer subject with topics is accepted", () => {
+  const long = "Economics: " + "inflation, GDP, supply, demand, trade";
+  assert.equal(validateAnswer("subject", long).ok, true);
 });

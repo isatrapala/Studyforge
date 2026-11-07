@@ -9,7 +9,7 @@
 export const SIMULATED_LABEL = "Guided assistant (simulated, no AI API)";
 
 export const INTAKE_QUESTIONS = [
-  { id: "subject", text: "What subject or topic is your exam about?", hint: "For example: Math, Chemistry, Macroeconomics" },
+  { id: "subject", text: "What subject or topic is your exam about?", hint: "For example: Math. For a more specific plan, add topics after a colon: Economics: inflation, GDP, supply" },
   { id: "days", text: "How many days until your exam?", hint: "A whole number from 1 to 60" },
   { id: "hours", text: "How many hours per day can you study?", hint: "A number from 0.5 to 12" },
 ];
@@ -23,7 +23,7 @@ export function validateAnswer(stepId, text) {
 
   if (stepId === "subject") {
     if (raw.length < 2) return { ok: false, error: "Please write the subject or topic (at least 2 letters)." };
-    if (raw.length > 60) return { ok: false, error: "Please keep the subject under 60 characters." };
+    if (raw.length > 120) return { ok: false, error: "Please keep the subject and topics under 120 characters." };
     if (!/[a-zA-ZáéíóúñÁÉÍÓÚÑ]/.test(raw)) return { ok: false, error: "The subject needs some letters, for example \"Math\"." };
     return { ok: true, value: raw };
   }
@@ -125,9 +125,26 @@ function formatMinutes(minutes) {
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
+// "Economics: inflation, GDP and supply" -> { subject: "Economics", topics: ["inflation", "GDP", "supply"] }
+export function parseSubject(value) {
+  const raw = String(value ?? "").trim();
+  const colon = raw.indexOf(":");
+  if (colon === -1) return { subject: raw, topics: [] };
+  const subject = raw.slice(0, colon).trim() || raw;
+  const topics = raw
+    .slice(colon + 1)
+    .split(/,|;|\band\b|\by\b/i)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+    .map((t) => t.slice(0, 40))
+    .slice(0, 6);
+  return { subject, topics };
+}
+
 // answers = { subject, days, hours }. Returns a simple plan made from templates.
+// If the subject has topics ("Economics: inflation, GDP"), each day names a topic.
 export function buildStudyPlan(answers) {
-  const subject = String(answers.subject).trim();
+  const { subject, topics } = parseSubject(answers.subject);
   const days = Number(answers.days);
   const hours = Number(answers.hours);
   const dayMinutes = Math.round(hours * 60);
@@ -137,9 +154,9 @@ export function buildStudyPlan(answers) {
   const recap = round5(dayMinutes * 0.2);
 
   const phases = [
-    { name: "Learn the core ideas", detail: `Read your notes for ${subject} and write the key ideas in your own words (${formatMinutes(core)}). Then do a few practice questions (${formatMinutes(practice)}) and a short recap (${formatMinutes(recap)}).` },
-    { name: "Practice and recall", detail: `Do practice questions on ${subject} (${formatMinutes(core)}), then close the notes and try to explain the key ideas from memory (${formatMinutes(practice)}). Write down what you missed (${formatMinutes(recap)}).` },
-    { name: "Review and rest", detail: `Review what you missed in ${subject} (${formatMinutes(core)}), do one timed practice set (${formatMinutes(practice)}) and a light recap (${formatMinutes(recap)}). Sleep well.` },
+    { name: "Learn the core ideas", detail: (l) => `Read your notes for ${l} and write the key ideas in your own words (${formatMinutes(core)}). Then do a few practice questions (${formatMinutes(practice)}) and a short recap (${formatMinutes(recap)}).` },
+    { name: "Practice and recall", detail: (l) => `Do practice questions on ${l} (${formatMinutes(core)}), then close the notes and try to explain the key ideas from memory (${formatMinutes(practice)}). Write down what you missed (${formatMinutes(recap)}).` },
+    { name: "Review and rest", detail: (l) => `Review what you missed in ${l} (${formatMinutes(core)}), do one timed practice set (${formatMinutes(practice)}) and a light recap (${formatMinutes(recap)}). Sleep well.` },
   ];
 
   const phaseFor = (dayIndex) => {
@@ -149,20 +166,29 @@ export function buildStudyPlan(answers) {
     return share < 0.5 ? phases[0] : phases[1];
   };
 
+  // Label for a day: the topic of that day if there are topics, else the subject.
+  // The last day reviews all topics together.
+  const labelFor = (dayIndex, isLast) => {
+    if (topics.length === 0) return subject;
+    if (isLast && days > 1) return `${subject} (all topics: ${topics.join(", ")})`;
+    return `${topics[dayIndex % topics.length]} (${subject})`;
+  };
+
   const lines = [];
   if (days <= 7) {
     for (let i = 0; i < days; i++) {
-      lines.push({ day: `Day ${i + 1}`, text: `${phaseFor(i).name}: ${phaseFor(i).detail}` });
+      const phase = phaseFor(i);
+      lines.push({ day: `Day ${i + 1}`, text: `${phase.name}: ${phase.detail(labelFor(i, i === days - 1))}` });
     }
   } else {
     // Group the days into 7 stages so the plan stays short.
     const size = days / 7;
-    for (let s = 0; s < 7; s++) {
-      const start = Math.floor(s * size);
-      const end = Math.max(start, Math.floor((s + 1) * size) - 1);
+    for (let st = 0; st < 7; st++) {
+      const start = Math.floor(st * size);
+      const end = Math.max(start, Math.floor((st + 1) * size) - 1);
       const label = start === end ? `Day ${start + 1}` : `Days ${start + 1}-${end + 1}`;
       const phase = phaseFor(end);
-      lines.push({ day: label, text: `${phase.name}: ${phase.detail}` });
+      lines.push({ day: label, text: `${phase.name}: ${phase.detail(labelFor(st, end === days - 1))}` });
     }
   }
 
@@ -171,6 +197,7 @@ export function buildStudyPlan(answers) {
     title: `Study plan for ${subject}`,
     days,
     hours,
+    topics,
     lines,
     summary: `${days} ${days === 1 ? "day" : "days"} x ${hours} h = ${totalHours} h of study in total.`,
     note: "This is a simple template plan, not personal advice. Change it to fit you.",
