@@ -116,8 +116,8 @@ title to the `marketing_assets` table (`sql/marketing.sql`).
 Two A/B tests (homepage headline and button text) save real votes in the
 `ab_votes` table. A visitor can vote once per test per browser (a soft limit
 kept in `localStorage`). A winner needs at least 10 votes and 60% for one
-version; otherwise the page says "No clear winner". The homepage shows version
-A until the votes decide.
+version; otherwise the page says "No clear winner". The homepage uses the
+winners of the first round of votes (headline A, button text B).
 
 ## Generative Core Agent (`/core`)
 

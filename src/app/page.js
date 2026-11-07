@@ -64,10 +64,11 @@ const benefits = [
 ];
 
 export default function Home() {
-  // Version A of each A/B test is what visitors see on this page.
-  // Visitors can vote for A or B on /marketing.
+  // A/B test results (10 real votes each, saved in Supabase):
+  // Test 1 headline: A won (7 of 10). Test 2 button text: B won (9 of 10).
+  // Visitors can still vote on /marketing.
   const headline = AB_TESTS[0].A;
-  const buttonText = AB_TESTS[1].A;
+  const buttonText = AB_TESTS[1].B;
 
   return (
     <main className="flex-1">
