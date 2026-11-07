@@ -78,3 +78,16 @@ test("A/B result follows the winner rule", () => {
   const r = abResult({ A: 1, B: 2 });
   assert.equal(r.pctA + r.pctB, 100);
 });
+
+// Fix found in live testing: the product line must not start with a capital
+// letter in the middle of a sentence.
+test("product line is lowercase in the middle of a sentence", () => {
+  const kit = generateMarketingKit(GOOD);
+  assert.ok(kit.posts[1].text.includes("StudyForge AI: a study planner"));
+  assert.ok(kit.scripts[0].body.includes("Say: a study planner"));
+  // At the start of a sentence it keeps the capital letter.
+  assert.ok(kit.posts[0].text.includes("Meet StudyForge AI. A study planner"));
+  // Acronyms stay as typed.
+  const ai = generateMarketingKit({ ...GOOD, productLine: "AI tool for notes" });
+  assert.ok(ai.posts[1].text.includes("StudyForge AI: AI tool for notes"));
+});

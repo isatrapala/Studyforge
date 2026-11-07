@@ -26,6 +26,14 @@ function noDot(text) {
   return clean(text).replace(/[.!?\s]+$/, "");
 }
 
+// Lowercase the first letter when the text goes in the middle of a sentence
+// ("StudyForge AI: a study planner..."). Keep it if the second letter is also
+// a capital, like "AI tool" or "UNAM app".
+function lowerFirst(text) {
+  if (text.length > 1 && text[1] === text[1].toUpperCase() && /[A-Z]/.test(text[1])) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
 function toHashtag(brandName) {
   const word = clean(brandName).replace(/[^a-zA-Z0-9]/g, "");
   return word ? `#${word}` : "#Study";
@@ -49,17 +57,17 @@ export function validateInputs(inputs) {
   return errors;
 }
 
-function buildPosts(b, p, s, tag) {
+function buildPosts(b, p, pm, s, tag) {
   const base = [
     ["Instagram", `${s.open} Meet ${b}. ${p}.`],
-    ["TikTok", `POV: exam week is close and your notes are a mess. ${b}: ${p}.`],
-    ["WhatsApp", `Send this to the friend who studies everything the night before. ${b}: ${p}.`],
-    ["X", `Studying more is not the same as studying better. ${b}: ${p}.`],
+    ["TikTok", `POV: exam week is close and your notes are a mess. ${b}: ${pm}.`],
+    ["WhatsApp", `Send this to the friend who studies everything the night before. ${b}: ${pm}.`],
+    ["X", `Studying more is not the same as studying better. ${b}: ${pm}.`],
     ["Instagram", `Three steps: tell us what you need, get a plan, stay on track. That is ${b}.`],
     ["TikTok", `Question for university students in Mexico: how do you pick what to study first? ${b} is built for that. ${p}.`],
     ["WhatsApp", `Study group tip: share one clear plan, not ten sets of notes. Try ${b}.`],
     ["X", `We are a student project and we want honest feedback. Try ${b} and tell us what to fix.`],
-    ["Instagram", `A clear plan means less stress before exams. ${b}: ${p}. ${s.close}`],
+    ["Instagram", `A clear plan means less stress before exams. ${b}: ${pm}. ${s.close}`],
     ["TikTok", `Which headline do you like more? Vote on our site and help us choose. ${b}. ${s.close}`],
   ];
   return base.map(([channel, text], i) => ({
@@ -70,14 +78,14 @@ function buildPosts(b, p, s, tag) {
   }));
 }
 
-function buildScripts(b, p, s) {
+function buildScripts(b, pm, s) {
   return [
     {
       id: "script-1",
       title: "From messy notes to a plan",
       seconds: 30,
       hook: "Your notes are a mess and the exam is close.",
-      body: `Show a screen full of long, messy notes. Then show ${b}. Say: ${p}. Show the plan on screen.`,
+      body: `Show a screen full of long, messy notes. Then show ${b}. Say: ${pm}. Show the plan on screen.`,
       cta: `Try ${b} with your own notes. ${s.close}`,
     },
     {
@@ -85,7 +93,7 @@ function buildScripts(b, p, s) {
       title: "Study the core first",
       seconds: 30,
       hook: "Stop studying everything.",
-      body: `Say that most exams have a few core ideas. Show how ${b} helps you find them first. Say: ${p}.`,
+      body: `Say that most exams have a few core ideas. Show how ${b} helps you find them first. Say: ${pm}.`,
       cta: `Open ${b} and start with the core.`,
     },
     {
@@ -93,7 +101,7 @@ function buildScripts(b, p, s) {
       title: "A student project",
       seconds: 30,
       hook: "We are students building a tool for students.",
-      body: `Say what you are building: ${p}. Say clearly that it is a student project and that feedback is welcome.`,
+      body: `Say what you are building: ${pm}. Say clearly that it is a student project and that feedback is welcome.`,
       cta: "Vote on our headline and tell us what to improve.",
     },
   ];
@@ -156,8 +164,8 @@ export function generateMarketingKit(inputs) {
         { q: "How do I start?", a: "Click the button and try it with your own notes." },
       ],
     },
-    posts: buildPosts(b, p, s, tag),
-    scripts: buildScripts(b, p, s),
+    posts: buildPosts(b, p, lowerFirst(p), s, tag),
+    scripts: buildScripts(b, lowerFirst(p), s),
     calendar: buildCalendar(),
   };
 }
