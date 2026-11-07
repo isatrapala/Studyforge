@@ -197,3 +197,50 @@ export async function getVoteCounts(testId) {
   });
   return { data: counts, error };
 }
+
+// ---------------------------------------------------------------------------
+// chat_sessions — Week 5: Public Chatbot / Guided Assistant
+//
+// Table created via sql/chat.sql. One row per finished /chat session, plus the
+// thumbs up / down rating and optional comment added afterwards.
+// Same "not configured yet" safe no-op pattern as the helpers above.
+// ---------------------------------------------------------------------------
+
+export async function saveChatSession({ answers, outcome, summary }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("chat_sessions")
+    .insert([{ answers, outcome, summary }])
+    .select()
+    .single();
+  return { data, error };
+}
+
+// A session can be rated once: the update only matches rows with no rating.
+export async function rateChatSession(id, rating, comment) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("chat_sessions")
+    .update({ rating, comment: comment ? comment : null })
+    .eq("id", id)
+    .is("rating", null)
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function listChatSessions(limit = 10) {
+  if (!supabase) {
+    return { data: [], error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("chat_sessions")
+    .select("id, answers, outcome, rating, comment, summary, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}
