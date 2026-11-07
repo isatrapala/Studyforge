@@ -9,7 +9,7 @@ import {
   buildStudyPlan,
   summarizeSession,
 } from "@/lib/chatEngine";
-import { saveChatSession } from "@/lib/supabaseClient";
+import { saveChatSession, rateChatSession, listChatSessions } from "@/lib/supabaseClient";
 
 const GREETING =
   "Hi! I am the StudyForge guided assistant. I will ask you 3 short questions about your exam and then give you a simple study plan.";
@@ -27,7 +27,31 @@ export default function ChatPage() {
   const [answers, setAnswers] = useState({});
   const [input, setInput] = useState("");
   const [saveStatus, setSaveStatus] = useState(null); // { type: "ok" | "error", text }
+  const [sessionId, setSessionId] = useState(null);
+  const [rated, setRated] = useState(null); // "up" | "down" once saved
+  const [comment, setComment] = useState("");
+  const [rateStatus, setRateStatus] = useState(null); // { type: "ok" | "error", text }
+  const [saved, setSaved] = useState([]);
+  const [loadError, setLoadError] = useState(null);
   const bottomRef = useRef(null);
+
+  async function refreshSaved() {
+    const { data, error } = await listChatSessions(10);
+    setSaved(data);
+    setLoadError(error ? error.message : null);
+  }
+
+  useEffect(() => {
+    let active = true;
+    listChatSessions(10).then(({ data, error }) => {
+      if (!active) return;
+      setSaved(data);
+      setLoadError(error ? error.message : null);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (bottomRef.current && bottomRef.current.scrollIntoView) {
@@ -41,12 +65,26 @@ export default function ChatPage() {
 
   async function finishSession({ outcome, category, finalAnswers }) {
     const summary = summarizeSession({ answers: finalAnswers, outcome, category });
-    const { error } = await saveChatSession({ answers: finalAnswers, outcome, summary });
-    setSaveStatus(
-      error
-        ? { type: "error", text: `The session was not saved: ${error.message}` }
-        : { type: "ok", text: "Session saved." }
-    );
+    const { data, error } = await saveChatSession({ answers: finalAnswers, outcome, summary });
+    if (error) {
+      setSaveStatus({ type: "error", text: `The session was not saved: ${error.message}` });
+      return;
+    }
+    setSessionId(data.id);
+    setSaveStatus({ type: "ok", text: "Session saved." });
+    refreshSaved();
+  }
+
+  async function handleRate(rating) {
+    if (!sessionId || rated) return;
+    const { error } = await rateChatSession(sessionId, rating, comment.trim());
+    if (error) {
+      setRateStatus({ type: "error", text: `Could not save your rating: ${error.message}` });
+      return;
+    }
+    setRated(rating);
+    setRateStatus({ type: "ok", text: "Thanks for your feedback!" });
+    refreshSaved();
   }
 
   async function handleSubmit(e) {
@@ -103,6 +141,10 @@ export default function ChatPage() {
     setAnswers({});
     setInput("");
     setSaveStatus(null);
+    setSessionId(null);
+    setRated(null);
+    setComment("");
+    setRateStatus(null);
   }
 
   const stepLabel = step < 3 ? `Question ${step + 1} of 3` : "Done";
@@ -172,6 +214,88 @@ export default function ChatPage() {
             {saveStatus.text}
           </p>
         )}
+
+        {sessionId && (
+          <section className="rounded-xl border border-zinc-200 p-4">
+            <p className="text-sm font-semibold text-zinc-900">Was this helpful?</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleRate("up")}
+                disabled={Boolean(rated)}
+                aria-label="Thumbs up"
+                className={`rounded-md border px-3 py-1 text-sm font-medium disabled:cursor-not-allowed ${rated === "up" ? "border-emerald-600 bg-emerald-50 text-emerald-800" : "border-zinc-300 text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"}`}
+              >
+                Thumbs up
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRate("down")}
+                disabled={Boolean(rated)}
+                aria-label="Thumbs down"
+                className={`rounded-md border px-3 py-1 text-sm font-medium disabled:cursor-not-allowed ${rated === "down" ? "border-red-600 bg-red-50 text-red-800" : "border-zinc-300 text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"}`}
+              >
+                Thumbs down
+              </button>
+              <input
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                disabled={Boolean(rated)}
+                maxLength={300}
+                aria-label="Optional comment"
+                placeholder="Tell us more (optional)"
+                className="min-w-[12rem] flex-1 rounded-md border border-zinc-300 px-3 py-1 text-sm disabled:bg-zinc-100"
+              />
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">
+              Please do not write personal data in the comment. Write the comment first, then press a thumb.
+            </p>
+            {rateStatus && (
+              <p
+                className={`mt-2 text-sm ${rateStatus.type === "ok" ? "text-emerald-700" : "text-red-700"}`}
+                role={rateStatus.type === "ok" ? "status" : "alert"}
+              >
+                {rateStatus.text}
+              </p>
+            )}
+          </section>
+        )}
+
+        <section className="rounded-xl border border-zinc-200 p-4">
+          <h2 className="text-lg font-semibold text-zinc-900">Saved sessions</h2>
+          <p className="mt-1 text-sm text-zinc-600">
+            The last 10 sessions saved in Supabase. Thumbs up: {saved.filter((x) => x.rating === "up").length}
+            {" "}&middot; Thumbs down: {saved.filter((x) => x.rating === "down").length}
+          </p>
+          {loadError && (
+            <p className="mt-3 text-sm text-red-700" role="alert">
+              Could not load saved sessions: {loadError}
+            </p>
+          )}
+          {saved.length === 0 && !loadError ? (
+            <p className="mt-3 text-sm text-zinc-600">Nothing saved yet.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-zinc-100">
+              {saved.map((row) => (
+                <li key={row.id} className="py-3 text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-zinc-900">
+                      {row.summary}{" "}
+                      <span className="ml-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700">
+                        {row.outcome}
+                      </span>
+                    </p>
+                    <span className="text-xs text-zinc-500">{new Date(row.created_at).toLocaleString()}</span>
+                  </div>
+                  <p className="mt-1 text-zinc-700">
+                    Rating: {row.rating === "up" ? "thumbs up" : row.rating === "down" ? "thumbs down" : "not rated"}
+                    {row.comment ? ` — "${row.comment}"` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );
