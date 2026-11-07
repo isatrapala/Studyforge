@@ -22,7 +22,7 @@ This repository now covers four weekly submissions:
   page (3 pricing tiers, feature map, 2 customer segments) and a `/pricing`
   simulator (revenue calculator, scenario toggle, assumptions table, saved
   scenarios in Supabase).
-- **Week 4 — Marketing Engine + Content System** (current): an upgraded
+- **Week 4 — Marketing Engine + Content System** (done): an upgraded
   homepage and a `/marketing` page with a brand system, a target persona
   (Mariana, an archetype), landing page copy, 10 social posts, 3 video
   scripts, a 14-day calendar, copy and export buttons, saved assets in
@@ -76,6 +76,7 @@ src/
     product/page.js        # /product — tiers, feature map, segments (Week 3)
     pricing/page.js         # /pricing — pricing simulator (Week 3)
     marketing/page.js        # /marketing — Marketing Engine (Week 4)
+    chat/page.js              # /chat — Guided Assistant (Week 5)
     docs/page.js            # /docs — prompt library + data model reference
     globals.css
   components/
@@ -94,14 +95,32 @@ src/
     brandData.js               # Brand system, persona, A/B test texts (Week 4)
     marketingEngine.js          # Template-based marketing kit, export, A/B rule
     marketingEngine.test.js      # Marketing logic tests (npm test)
+    chatEngine.js                 # Guided assistant: intake, guardrails, plan (Week 5)
+    chatEngine.test.js             # Chat logic tests (npm test)
 sql/
   core_outputs.sql      # Run once in Supabase SQL editor to create the table
   research_outputs.sql   # Run once in Supabase SQL editor to create the table
   pricing_scenarios.sql   # Run once in Supabase SQL editor (safe to run again)
   marketing.sql            # Week 4: marketing_assets + ab_votes (safe to run again)
+  chat.sql                  # Week 5: chat_sessions (safe to run again)
 docs/week3/               # Week 3 plan, UX mockup, and date/time evidence note
 docs/week4/               # Week 4 plan, UX mockup, and date/time evidence note
+docs/week5/               # Week 5 plan, UX mockup, and date/time evidence note
 ```
+
+## Guided Assistant (`/chat`)
+
+A public study helper that asks 3 intake questions (subject, days until the
+exam, hours per day) and gives a simple day-by-day study plan. It is
+**rule-based and simulated** (no AI API) and the page says so. All the logic
+lives in `src/lib/chatEngine.js` (pure functions with tests). Guardrails refuse
+cheating or exam-answer requests, grade promises, medical or legal advice,
+harmful requests and personal data, and redirect off-topic messages. A human
+checkpoint stops the plan when a message shows strong stress or hopelessness
+(or the user asks for a person) and points to a trusted person, university
+student services, Linea de la Vida (800 911 2000) and 911. Each finished
+session is saved in the `chat_sessions` table (`sql/chat.sql`) and the user can
+rate it with a thumbs up or down and an optional comment.
 
 ## Marketing Engine (`/marketing`)
 
@@ -201,12 +220,21 @@ self-tests are run against the deployed URL after every deploy:
    list and it is still there after reload; an empty title is blocked.
 9. Week 4 A/B tests: real people vote on `/marketing` and the counts match the
    rows in the `ab_votes` table.
+10. Week 5, run `npm test` (23 tests in total, 11 for the chat engine): 3 intake
+    questions, invalid answers rejected, cheating and personal data blocked,
+    distress goes to the human checkpoint, a plan is built from valid answers.
+11. Week 5, on the live site: `/chat` loads; a valid session gives a plan; a
+    cheating request gets a guardrail reply; a stressed message gets the human
+    checkpoint; a rating is saved and the Saved sessions list keeps it after
+    reload.
+12. Week 5, 3 external user tests with real people (notes in the packet).
 
 ## Status
 
 Setup Sprint — done. Week 1 (Generative Core Agent) — done. Week 2
 (Research + Benchmarking Dashboard) — done. Week 3 (Product Architecture +
-Pricing Simulator) — done. Week 4 (Marketing Engine + Content System) — in
-progress: `/marketing` is built, with assets and A/B votes saved to Supabase.
-Run `sql/marketing.sql` in Supabase before using it. No
+Pricing Simulator) — done. Week 4 (Marketing Engine + Content System) — done.
+Week 5 (Public Chatbot / Guided Assistant) — in progress: `/chat` is built,
+with sessions and ratings saved to Supabase. Run `sql/chat.sql` in Supabase
+before using it. No
 paid AI API is used; simulated output is clearly labeled per course rules.

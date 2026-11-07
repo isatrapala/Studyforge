@@ -27,9 +27,15 @@ const roadmap = [
   },
   {
     week: "Week 4 — Marketing Engine + Content System",
-    status: "In progress",
+    status: "Done",
     detail:
       "/marketing: brand system, target persona, landing copy, 10 social posts, 3 video scripts, a 14-day calendar, 2 A/B tests with real votes, and saved assets.",
+  },
+  {
+    week: "Week 5 — Public Chatbot / Guided Assistant",
+    status: "In progress",
+    detail:
+      "/chat: a guided study helper with 3 intake questions, a simple study plan, guardrails, a human checkpoint, thumbs up or down, and saved sessions.",
   },
 ];
 
@@ -96,6 +102,12 @@ export default function Home() {
               className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
             >
               Vote on our headline
+            </a>
+            <a
+              href="/chat"
+              className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
+            >
+              Talk to the study helper
             </a>
           </div>
           <p className="mt-4 text-sm text-zinc-500">{BRAND.tagline}</p>
