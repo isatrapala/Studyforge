@@ -1,3 +1,5 @@
+import { BUILD_LOGS, PROMPTS } from "../../lib/ventureData.js";
+
 const corePrompt = `You are a study coach. Given a messy topic, chapter, or set of
 notes, extract its core:
 
@@ -62,6 +64,50 @@ const dataModel = [
       ["created_at", "timestamptz", "Set automatically on insert"],
     ],
   },
+  {
+    table: "marketing_assets",
+    week: "Week 4",
+    columns: [
+      ["asset_type", "text", "post, script, landing or calendar"],
+      ["title", "text", "Title the student gave the saved piece"],
+      ["content", "text", "The saved text"],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
+  },
+  {
+    table: "ab_votes",
+    week: "Week 4",
+    columns: [
+      ["test_id", "text", "Which A/B test was voted on (headline or cta)"],
+      ["variant", "text", "A or B"],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
+  },
+  {
+    table: "chat_sessions",
+    week: "Week 5",
+    columns: [
+      ["answers", "jsonb", "The intake answers: subject, days, hours"],
+      ["outcome", "text", "plan / blocked / offtopic / human"],
+      ["rating", "text", "up / down, or empty if not rated"],
+      ["comment", "text", "Optional comment given with the rating"],
+      ["summary", "text", "One short line describing the session"],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
+  },
+  {
+    table: "venture_feedback",
+    week: "Week 6",
+    columns: [
+      ["tester", "text", "Initials only. No names, emails or phone numbers"],
+      ["finished", "boolean", "Did the tester finish the 7 demo steps"],
+      ["usefulness", "int", "1 to 5"],
+      ["helped", "text", "yes / some / no: did it help decide what to study first"],
+      ["would_use", "text", "yes / maybe / no (optional)"],
+      ["comment", "text", "Optional comment"],
+      ["created_at", "timestamptz", "Set automatically on insert"],
+    ],
+  },
 ];
 
 export default function DocsPage() {
@@ -114,6 +160,64 @@ export default function DocsPage() {
           asked, what method was used, what they said, and whether it
           supports the core &ldquo;messy notes&rdquo; problem hypothesis.
         </p>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-zinc-900">
+          Prompt library (Weeks 4 to 6)
+        </h2>
+        <p className="mt-2 text-sm text-zinc-600">
+          These are the prompts a real model would use to replace the
+          simulated engines. The app does <strong>not</strong> call them
+          today: marketing and chat are templates and rules, and the
+          output is labeled as simulated.
+        </p>
+        <div className="mt-4 space-y-6">
+          {PROMPTS.map((prompt) => (
+            <div key={prompt.id}>
+              <p className="text-sm font-semibold text-zinc-900">
+                {prompt.title}{" "}
+                <span className="font-normal text-zinc-500">— {prompt.week}</span>
+              </p>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-xl border border-zinc-200 bg-zinc-900 p-4 text-xs text-zinc-100">
+                <code>{prompt.text}</code>
+              </pre>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-zinc-900">Build logs</h2>
+        <p className="mt-2 text-sm text-zinc-600">
+          One line per week: what was built, how many commits and
+          deployments, and the main decision. The full evidence is in each
+          weekly packet and in the GitHub history.
+        </p>
+        <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200">
+          <table className="min-w-[640px] divide-y divide-zinc-200 text-sm">
+            <thead className="bg-zinc-50">
+              <tr>
+                <th className="px-4 py-2 text-left font-semibold text-zinc-700">Week</th>
+                <th className="px-4 py-2 text-left font-semibold text-zinc-700">Feature</th>
+                <th className="px-4 py-2 text-left font-semibold text-zinc-700">Commits</th>
+                <th className="px-4 py-2 text-left font-semibold text-zinc-700">Deployments</th>
+                <th className="px-4 py-2 text-left font-semibold text-zinc-700">Main decision</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {BUILD_LOGS.map((log) => (
+                <tr key={log.week}>
+                  <td className="px-4 py-2 font-medium text-zinc-900">{log.week}</td>
+                  <td className="px-4 py-2 text-zinc-600">{log.feature}</td>
+                  <td className="px-4 py-2 text-zinc-600">{log.commits}</td>
+                  <td className="px-4 py-2 text-zinc-600">{log.deployments}</td>
+                  <td className="px-4 py-2 text-zinc-600">{log.decision}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="mt-12">
