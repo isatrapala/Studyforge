@@ -256,7 +256,7 @@ export const TEST_SUMMARY = [
   {
     week: "Week 4",
     what: "Marketing kit and 2 A/B tests",
-    people: "20 votes (10 per test)",
+    people: "20 votes at the time of the Week 4 packet (10 per test); more votes came in later",
     checks: "8 unit tests",
     result: "Headline A won 7 of 10. Button B won 9 of 10. A bug was found and fixed.",
   },
