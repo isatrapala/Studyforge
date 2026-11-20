@@ -244,3 +244,81 @@ export async function listChatSessions(limit = 10) {
     .limit(limit);
   return { data: data || [], error };
 }
+
+// ---------------------------------------------------------------------------
+// venture_feedback + dashboard — Week 6: Integrated Agentic Venture
+//
+// Table created via sql/venture.sql. Testers are identified by initials only.
+// Same "not configured yet" safe no-op pattern as the helpers above.
+// ---------------------------------------------------------------------------
+
+export async function saveVentureFeedback({ tester, finished, usefulness, helped, wouldUse, comment }) {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("venture_feedback")
+    .insert([
+      {
+        tester,
+        finished,
+        usefulness,
+        helped,
+        would_use: wouldUse || null,
+        comment: comment ? comment : null,
+      },
+    ])
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function listVentureFeedback(limit = 50) {
+  if (!supabase) {
+    return { data: [], error: { message: "Supabase is not configured yet." } };
+  }
+  const { data, error } = await supabase
+    .from("venture_feedback")
+    .select("id, tester, finished, usefulness, helped, would_use, comment, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}
+
+// Every table the venture saves to, in the order the dashboard shows them.
+export const DASHBOARD_TABLES = [
+  "core_outputs",
+  "research_outputs",
+  "pricing_scenarios",
+  "marketing_assets",
+  "ab_votes",
+  "chat_sessions",
+  "venture_feedback",
+];
+
+// For each table: an exact row count and the latest 3 rows. One table failing
+// (for example a table that was never created) does not hide the others: each
+// entry carries its own error.
+export async function getDashboardData() {
+  if (!supabase) {
+    return { data: null, error: { message: "Supabase is not configured yet." } };
+  }
+  const entries = await Promise.all(
+    DASHBOARD_TABLES.map(async (table) => {
+      const [countRes, rowsRes] = await Promise.all([
+        supabase.from(table).select("*", { count: "exact", head: true }),
+        supabase.from(table).select("*").order("created_at", { ascending: false }).limit(3),
+      ]);
+      const error = countRes.error || rowsRes.error || null;
+      return [
+        table,
+        {
+          count: error ? null : countRes.count ?? 0,
+          rows: error ? [] : rowsRes.data || [],
+          error: error ? error.message : null,
+        },
+      ];
+    })
+  );
+  return { data: Object.fromEntries(entries), error: null };
+}
