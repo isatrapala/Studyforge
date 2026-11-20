@@ -3,6 +3,9 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   NAV_LINKS,
   AGENTS,
@@ -11,6 +14,8 @@ import {
   ROADMAP,
 } from "./ventureData.js";
 import { validateFeedback, summarizeFeedback } from "./ventureEngine.js";
+
+const appDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "app");
 
 const good = {
   tester: "Vale L.",
@@ -67,6 +72,17 @@ test("summary with real rows counts and averages correctly", () => {
   assert.equal(s.helpedSome, 1);
   assert.equal(s.helpedNo, 1);
   assert.equal(s.helpedPercent, 50);
+});
+
+test("every navigation link has a real page", () => {
+  assert.equal(NAV_LINKS.length, 10);
+  for (const link of NAV_LINKS) {
+    const file =
+      link.href === "/"
+        ? path.join(appDir, "page.js")
+        : path.join(appDir, link.href.slice(1), "page.js");
+    assert.ok(fs.existsSync(file), `${link.href} has no page at ${file}`);
+  }
 });
 
 test("walkthrough has 7 steps and every step and agent link is in the navigation", () => {
