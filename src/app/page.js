@@ -33,9 +33,15 @@ const roadmap = [
   },
   {
     week: "Week 5 — Public Chatbot / Guided Assistant",
-    status: "In progress",
+    status: "Done",
     detail:
       "/chat: a guided study helper with 3 intake questions, a simple study plan, guardrails, a human checkpoint, thumbs up or down, and saved sessions.",
+  },
+  {
+    week: "Week 6 — Integrated Agentic Venture + Impact & Viability",
+    status: "In progress",
+    detail:
+      "/demo and /dashboard: a 7-step guided walkthrough, an agent map, a practical impact check, a Version 2 roadmap, tester feedback, and every saved record in one place.",
   },
 ];
 
@@ -108,6 +114,12 @@ export default function Home() {
               className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
             >
               Talk to the study helper
+            </a>
+            <a
+              href="/demo"
+              className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
+            >
+              Take the guided demo
             </a>
           </div>
           <p className="mt-4 text-sm text-zinc-500">{BRAND.tagline}</p>

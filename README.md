@@ -28,6 +28,15 @@ This repository now covers four weekly submissions:
   scripts, a 14-day calendar, copy and export buttons, saved assets in
   Supabase, and 2 A/B tests with real votes. The content is **simulated**
   from templates (no paid AI API) and is labeled that way on the page.
+- **Week 5 — Public Chatbot / Guided Assistant** (done): `/chat` asks 3
+  questions, gives a simple study plan (with exam topics after a colon),
+  refuses unsafe or off-topic requests, sends sensitive messages to a human
+  checkpoint, and saves sessions and thumbs ratings in Supabase. It is
+  rule-based, not a real AI.
+- **Week 6 — Integrated Agentic Venture + Impact & Viability** (in progress):
+  one shared navigation, a `/demo` guided walkthrough (7 steps, agent map,
+  practical impact check, Version 2 roadmap, feedback form), a `/dashboard`
+  with every saved record, and `/docs` with the prompt library and build logs.
 
 ## Tech stack
 
@@ -77,6 +86,8 @@ src/
     pricing/page.js         # /pricing — pricing simulator (Week 3)
     marketing/page.js        # /marketing — Marketing Engine (Week 4)
     chat/page.js              # /chat — Guided Assistant (Week 5)
+    dashboard/page.js          # /dashboard — every saved record in one place (Week 6)
+    demo/page.js                # /demo — guided walkthrough, agent map, impact check (Week 6)
     docs/page.js            # /docs — prompt library + data model reference
     globals.css
   components/
@@ -97,15 +108,20 @@ src/
     marketingEngine.test.js      # Marketing logic tests (npm test)
     chatEngine.js                 # Guided assistant: intake, guardrails, plan (Week 5)
     chatEngine.test.js             # Chat logic tests (npm test)
+    ventureData.js                  # Nav links, agents, walkthrough, impact, roadmap, logs (Week 6)
+    ventureEngine.js                 # Feedback validation and summary (Week 6)
+    ventureEngine.test.js             # Venture logic tests (npm test)
 sql/
   core_outputs.sql      # Run once in Supabase SQL editor to create the table
   research_outputs.sql   # Run once in Supabase SQL editor to create the table
   pricing_scenarios.sql   # Run once in Supabase SQL editor (safe to run again)
   marketing.sql            # Week 4: marketing_assets + ab_votes (safe to run again)
   chat.sql                  # Week 5: chat_sessions (safe to run again)
+  venture.sql                # Week 6: venture_feedback (safe to run again)
 docs/week3/               # Week 3 plan, UX mockup, and date/time evidence note
 docs/week4/               # Week 4 plan, UX mockup, and date/time evidence note
 docs/week5/               # Week 5 plan, UX mockup, and date/time evidence note
+docs/week6/               # Week 6 plan, UX mockup, and date/time evidence note
 ```
 
 ## Guided Assistant (`/chat`)
@@ -228,13 +244,22 @@ self-tests are run against the deployed URL after every deploy:
     checkpoint; a rating is saved and the Saved sessions list keeps it after
     reload.
 12. Week 5, 3 external user tests with real people (notes in the packet).
+13. Week 6, run `npm test` (34 tests in total, 8 for the venture data and
+    feedback): valid and invalid feedback, emails and phone numbers rejected,
+    summary with no rows has no invented numbers, every navigation link has a
+    real page, the walkthrough and agent links are in the navigation.
+14. Week 6, on the live site: all 10 navigation links load; `/demo` walkthrough
+    progress updates; a bad feedback value is blocked and a good one is saved;
+    `/dashboard` counts match the Supabase tables.
+15. Week 6, 5 external users and a full-site regression test (notes in the
+    packet). Run `sql/venture.sql` in Supabase before using the feedback form.
 
 ## Status
 
 Setup Sprint — done. Week 1 (Generative Core Agent) — done. Week 2
 (Research + Benchmarking Dashboard) — done. Week 3 (Product Architecture +
 Pricing Simulator) — done. Week 4 (Marketing Engine + Content System) — done.
-Week 5 (Public Chatbot / Guided Assistant) — in progress: `/chat` is built,
-with sessions and ratings saved to Supabase. Run `sql/chat.sql` in Supabase
-before using it. No
-paid AI API is used; simulated output is clearly labeled per course rules.
+Week 5 (Public Chatbot / Guided Assistant) — done. Week 6 (Integrated Agentic
+Venture + Impact & Viability) — in progress: `/demo` and `/dashboard` are built.
+Run `sql/venture.sql` in Supabase before using the feedback form. No paid AI
+API is used; simulated output is clearly labeled per course rules.
