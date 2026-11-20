@@ -119,7 +119,7 @@ export const WALKTHROUGH = [
   {
     id: 5,
     title: "Marketing: generate and copy content",
-    instruction: "Press generate, copy one post and vote in one A/B test.",
+    instruction: "Press generate, copy one text (you do not post anything anywhere) and vote in one A/B test.",
     href: "/marketing",
     expected: "10 posts, 3 scripts and a 14-day calendar; the button says Copied; the A/B vote count goes up by one.",
   },

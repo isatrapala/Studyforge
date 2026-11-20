@@ -109,3 +109,9 @@ test("impact check and roadmap are complete", () => {
     assert.ok(item.reason.length > 20);
   }
 });
+
+test("the marketing step says that nothing is posted (tester feedback)", () => {
+  const step = WALKTHROUGH.find((x) => x.href === "/marketing");
+  assert.ok(step);
+  assert.match(step.instruction, /do not post anything/);
+});

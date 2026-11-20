@@ -131,7 +131,7 @@ export default function DemoPage() {
           </h1>
           <p className="mt-2 max-w-2xl text-zinc-600">
             Follow 7 short steps through every module, then tell me what you think. It takes about
-            5 minutes. Study the core first.
+            10 to 20 minutes. Nothing you try is posted anywhere. Study the core first.
           </p>
           <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
             Guided demo: the agents are simulated, rule-based or calculators. There is no AI API.
